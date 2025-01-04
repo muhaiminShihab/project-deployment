@@ -3,9 +3,23 @@
 echo "Laravel Project Setup Script"
 echo "-----------------------------"
 
+# Function to prompt for user confirmation
+confirm() {
+    read -r -p "${1:-Are you ready?} [y/N] " response
+    case "$response" in
+        [yY][eE][sS]|[yY]) 
+            true
+            ;;
+        *)
+            false
+            ;;
+    esac
+}
+
 # Input variables
 read -p "Enter project name: " PROJECT_NAME
 read -p "Enter PHP version (e.g., 8.2 or 8.3): " PHP_VERSION
+read -p "Enter Node version (e.g., 19.x or 20.x): " NODE_VERSION
 read -p "Enter GitHub repository URL (HTTPS): " GITHUB_URL
 read -p "Enter MySQL root password: " MYSQL_ROOT_PASS
 read -p "Enter database name: " DB_NAME
@@ -22,7 +36,23 @@ sudo apt install -y software-properties-common curl unzip git nginx mysql-server
 echo "Installing PHP and required extensions..."
 sudo add-apt-repository -y ppa:ondrej/php
 sudo apt update
-sudo apt install -y php${PHP_VERSION} php${PHP_VERSION}-fpm php${PHP_VERSION}-cli php${PHP_VERSION}-mysql php${PHP_VERSION}-xml php${PHP_VERSION}-mbstring php${PHP_VERSION}-curl php${PHP_VERSION}-intl php${PHP_VERSION}-zip composer
+sudo apt install -y php${PHP_VERSION} \
+    php${PHP_VERSION}-fpm \
+    php${PHP_VERSION}-cli \
+    php${PHP_VERSION}-mysql \
+    php${PHP_VERSION}-xml \
+    php${PHP_VERSION}-gd \
+    php${PHP_VERSION}-mbstring \
+    php${PHP_VERSION}-curl \
+    php${PHP_VERSION}-intl \
+    php${PHP_VERSION}-zip \
+    php${PHP_VERSION}-common \
+    php${PHP_VERSION}-opcache \
+    php${PHP_VERSION}-bcmath \
+    php${PHP_VERSION}-soap \
+    php${PHP_VERSION}-imagick \
+    php${PHP_VERSION}-ldap \
+    composer
 
 # Configure MySQL
 echo "Configuring MySQL..."
@@ -87,15 +117,25 @@ EOL
 sudo ln -sf ${NGINX_CONF} /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 
-# Set up Node.js dependencies
-echo "Installing Node.js dependencies..."
-cd /var/www/${PROJECT_NAME}
-npm install && npm run build
+# Set up Node.js
+if confirm "Do you want to set up Node.js?"; then
+    echo "Installing Node.js version ${NODE_VERSION}..."
+    curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | sudo -E bash -
+    sudo apt install -y nodejs
+    cd /var/www/${PROJECT_NAME}
+    npm install && npm run build
+fi
 
 # Set up SSL
-echo "Installing SSL for HTTPS"
-sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}
-sudo certbot renew --dry-run
+if confirm "Do you want to install SSL certificate?"; then
+    echo "WARNING: Before proceeding, ensure your domain's DNS A record points to this server's IP address."
+    if confirm "Have you configured the DNS settings?"; then
+        sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}
+        sudo certbot renew --dry-run
+    else
+        echo "Please configure DNS settings first and run SSL installation later."
+    fi
+fi
 
 # Final message
 echo "Laravel project ${PROJECT_NAME} has been successfully set up!"
