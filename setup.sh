@@ -74,9 +74,9 @@ sudo chmod -R 775 /var/www/${PROJECT_NAME}
 # Configure environment
 echo "Configuring .env file..."
 sudo cp /var/www/${PROJECT_NAME}/.env.example /var/www/${PROJECT_NAME}/.env
-sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE=${DB_NAME}/" /var/www/${PROJECT_NAME}/.env
-sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME=${DB_USER}/" /var/www/${PROJECT_NAME}/.env
-sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${DB_PASS}/" /var/www/${PROJECT_NAME}/.env
+sudo sed -i "s/DB_DATABASE=.*/DB_DATABASE="${DB_NAME}"/" /var/www/${PROJECT_NAME}/.env
+sudo sed -i "s/DB_USERNAME=.*/DB_USERNAME="${DB_USER}"/" /var/www/${PROJECT_NAME}/.env
+sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD="${DB_PASS}"/" /var/www/${PROJECT_NAME}/.env
 
 # Install PHP dependencies
 echo "Installing PHP dependencies..."
@@ -135,6 +135,11 @@ if confirm "Do you want to install SSL certificate?"; then
     else
         echo "Please configure DNS settings first and run SSL installation later."
     fi
+fi
+
+# Migrate Database
+if confirm "Do you want to migrate database?"; then
+    php artisan migrate --seed
 fi
 
 # Final message
