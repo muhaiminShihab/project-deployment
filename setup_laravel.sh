@@ -11,19 +11,25 @@ read -p "Enter MySQL root password: " MYSQL_ROOT_PASS
 read -p "Enter database name: " DB_NAME
 read -p "Enter database username: " DB_USER
 read -p "Enter database user password: " DB_PASS
-read -p "Enter domain: " DOMAIN
+read -p "Enter domain (muhaiminShihab.github.io): " DOMAIN
 
 # Update and install required packages
 echo "Updating system and installing required packages..."
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y nginx mysql-server php${PHP_VERSION} php${PHP_VERSION}-fpm php${PHP_VERSION}-cli php${PHP_VERSION}-mysql php${PHP_VERSION}-xml php${PHP_VERSION}-mbstring php${PHP_VERSION}-zip git unzip curl nodejs npm composer
+sudo apt install -y software-properties-common curl unzip git nginx mysql-server nodejs npm
+
+# Add PHP repository and install PHP
+echo "Installing PHP and required extensions..."
+sudo add-apt-repository -y ppa:ondrej/php
+sudo apt update
+sudo apt install -y php${PHP_VERSION} php${PHP_VERSION}-fpm php${PHP_VERSION}-cli php${PHP_VERSION}-mysql php${PHP_VERSION}-xml php${PHP_VERSION}-mbstring php${PHP_VERSION}-curl php${PHP_VERSION}-intl php${PHP_VERSION}-zip composer
 
 # Configure MySQL
 echo "Configuring MySQL..."
-sudo mysql -e "CREATE DATABASE ${DB_NAME};"
-sudo mysql -e "CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
-sudo mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
-sudo mysql -e "FLUSH PRIVILEGES;"
+sudo mysql -u root -p"${MYSQL_ROOT_PASS}" -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
+sudo mysql -u root -p"${MYSQL_ROOT_PASS}" -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+sudo mysql -u root -p"${MYSQL_ROOT_PASS}" -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
+sudo mysql -u root -p"${MYSQL_ROOT_PASS}" -e "FLUSH PRIVILEGES;"
 
 # Clone the project from GitHub
 echo "Cloning project from GitHub..."
@@ -45,8 +51,8 @@ sudo sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${DB_PASS}/" /var/www/${PROJECT_NAME}/
 # Install PHP dependencies
 echo "Installing PHP dependencies..."
 cd /var/www/${PROJECT_NAME}
-sudo composer install --no-dev --optimize-autoloader
-sudo php artisan key:generate
+composer install --no-dev --optimize-autoloader
+php artisan key:generate
 
 # Set up Nginx
 echo "Configuring Nginx..."
@@ -78,14 +84,14 @@ server {
 EOL
 
 # Enable site and restart Nginx
-sudo ln -s ${NGINX_CONF} /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
+sudo ln -sf ${NGINX_CONF} /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
 
 # Set up Node.js dependencies
 echo "Installing Node.js dependencies..."
+cd /var/www/${PROJECT_NAME}
 npm install && npm run build
 
 # Final message
 echo "Laravel project ${PROJECT_NAME} has been successfully set up!"
-echo "Access it via ${DOMAIN}"
+echo "Access it via http://${DOMAIN}"
