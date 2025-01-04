@@ -16,7 +16,7 @@ read -p "Enter domain (muhaiminShihab.github.io): " DOMAIN
 # Update and install required packages
 echo "Updating system and installing required packages..."
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y software-properties-common curl unzip git nginx mysql-server nodejs npm
+sudo apt install -y software-properties-common curl unzip git nginx mysql-server nodejs npm certbot python3-certbot-nginx
 
 # Add PHP repository and install PHP
 echo "Installing PHP and required extensions..."
@@ -92,6 +92,11 @@ echo "Installing Node.js dependencies..."
 cd /var/www/${PROJECT_NAME}
 npm install && npm run build
 
+# Set up SSL
+echo "Installing SSL for HTTPS"
+sudo certbot --nginx -d ${DOMAIN} -d www.${DOMAIN}
+sudo certbot renew --dry-run
+
 # Final message
 echo "Laravel project ${PROJECT_NAME} has been successfully set up!"
-echo "Access it via http://${DOMAIN}"
+echo "Access it via ${DOMAIN}"
