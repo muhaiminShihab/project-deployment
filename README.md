@@ -12,7 +12,8 @@ Execute the script to set up your server and deploy your Laravel project:
 ## Script Information
 During execution, the script will prompt you for the following details:
 - **Project Name**  
-- **PHP Version**  
+- **PHP Version**
+- **Node.js Version**
 - **GitHub Repository URL**  
 - **Database Username and Password**  
 - **Domain Name**
