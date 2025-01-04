@@ -15,18 +15,18 @@ This guide provides instructions to set up an **Ubuntu Nginx Server** for deploy
    ```shell
    cd project-deployment
    ```
-   Inside this folder, you will find a file named `setup_laravel.sh`.
+   Inside this folder, you will find a file named `setup.sh`.
 
 3. **Make the Script Executable**
    Grant execution permissions to the setup script:
    ```shell
-   sudo chmod +x setup_laravel.sh
+   sudo chmod +x setup.sh
    ```
 
 4. **Run the Setup Script**
    Execute the script to set up your server and deploy your Laravel project:
    ```shell
-   sudo ./setup_laravel.sh
+   sudo ./setup.sh
    ```
 
    > **Note:** Ensure the filename is correct. If the script name is different, adjust the command accordingly.
